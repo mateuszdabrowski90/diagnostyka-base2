@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BL Diagnostyka</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f5f3; --surface: #fff; --surface2: #f0efeb;
+      --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+      --text: #1a1a18; --text2: #6b6b67; --text3: #9b9b96;
+      --blue: #185fa5; --blue-bg: #e6f1fb; --blue-text: #0c447c;
+      --green: #0f6e56; --green-bg: #e1f5ee; --green-text: #085041;
+      --red: #a32d2d; --red-bg: #fcebeb; --red-text: #791f1f;
+      --amber-bg: #faeeda; --amber-text: #854f0b;
+      --radius: 10px; --radius-lg: 14px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a18; --surface: #242422; --surface2: #2e2e2b;
+        --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+        --text: #f0efe8; --text2: #a0a09a; --text3: #606058;
+        --blue: #85b7eb; --blue-bg: #042c53; --blue-text: #b5d4f4;
+        --green: #5dcaa5; --green-bg: #04342c; --green-text: #9fe1cb;
+        --red: #f09595; --red-bg: #501313; --red-text: #f7c1c1;
+        --amber-bg: #412402; --amber-text: #fac775;
+      }
+    }
+    html, body { background: var(--bg); font-family: var(--font); color: var(--text); min-height: 100%; }
+    .wrap { max-width: 680px; margin: 0 auto; padding: 32px 16px 64px; display: flex; flex-direction: column; gap: 20px; }
+    h1 { font-size: 20px; font-weight: 600; }
+    .sub { font-size: 14px; color: var(--text2); margin-top: 4px; }
+
+    .card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text3); }
+
+    label { font-size: 13px; color: var(--text2); display: block; margin-bottom: 6px; }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      background: var(--surface2);
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      font-size: 14px;
+      color: var(--text);
+      font-family: var(--font);
+      outline: none;
+    }
+    input:focus { border-color: var(--blue); }
+
+    .btn {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sm {
+      background: var(--surface2);
+      color: var(--text);
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 8px 14px;
+      font-size: 13px;
+      font-family: var(--font);
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+
+    .result-block {
+      border-radius: var(--radius);
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.6;
+      display: none;
+    }
+    .result-block.ok { background: var(--green-bg); color: var(--green-text); display: block; }
+    .result-block.err { background: var(--red-bg); color: var(--red-text); display: block; }
+    .result-block.info { background: var(--blue-bg); color: var(--blue-text); display: block; }
+
+    .storage-item {
+      background: var(--surface2);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    }
+    .storage-name { font-size: 14px; font-weight: 500; }
+    .storage-id { font-family: var(--mono); font-size: 13px; color: var(--text2); }
+    .copy-badge {
+      background: var(--blue-bg);
+      color: var(--blue-text);
+      font-size: 12px;
+      font-family: var(--mono);
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      border: none;
+      font-family: var(--mono);
+    }
+    .copy-badge:active { opacity: 0.7; }
+
+    .product-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .product-row dt { color: var(--text2); }
+    .product-row dd { font-weight: 500; word-break: break-all; }
+
+    .divider { border: none; border-top: 0.5px solid var(--border); }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinning { display: inline-block; animation: spin 1s linear infinite; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1><i class="ti ti-stethoscope" style="font-size:22px;vertical-align:-3px;margin-right:6px;color:var(--blue);" aria-hidden="true"></i>Diagnostyka BaseLinker</h1>
+    <div class="sub">Narzędzie do weryfikacji klucza API, magazynów i wyszukiwania produktów</div>
+  </div>
+
+  <!-- KROK 1 -->
+  <div class="card">
+    <div class="card-title">Krok 1 — Klucz API</div>
+    <div>
+      <label for="api-key">Klucz API BaseLinker</label>
+      <input type="password" id="api-key" placeholder="Wklej klucz API..." />
+    </div>
+    <button class="btn" onclick="testStorages()">
+      <i class="ti ti-plug" id="test-icon" aria-hidden="true"></i>
+      <span id="test-label">Pobierz listę magazynów</span>
+    </button>
+    <div class="result-block" id="storages-result"></div>
+    <div id="storages-list" style="display:none;display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+
+  <!-- KROK 2 -->
+  <div class="card" id="step2" style="opacity:0.4;pointer-events:none;">
+    <div class="card-title">Krok 2 — Wyszukaj produkt po EAN</div>
+    <div>
+      <label for="storage-id-test">Inventory ID (skopiuj z kroku 1 — sekcja "Katalogi")</label>
+      <input type="text" id="storage-id-test" placeholder="np. 12345" />
+    </div>
+    <div>
+      <label for="ean-test">EAN produktu do testu</label>
+      <input type="text" id="ean-test" placeholder="np. 5901234123457" />
+    </div>
+    <button class="btn" onclick="testProduct()">
+      <i class="ti ti-search" id="search-icon" aria-hidden="true"></i>
+      <span id="search-label">Wyszukaj produkt</span>
+    </button>
+    <div class="result-block" id="product-result"></div>
+    <div id="product-detail" style="display:none;">
+      <hr class="divider" style="margin: 4px 0 12px;" />
+      <dl class="product-row" id="product-dl"></dl>
+    </div>
+  </div>
+
+  <!-- KROK 3 -->
+  <div class="card" id="step3" style="opacity:0.4;pointer-events:none;">
+    <div class="card-title">Krok 3 — Wynik</div>
+    <div class="result-block info" id="final-result">Uzupełnij kroki 1 i 2 żeby zobaczyć diagnozę.</div>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  async function blCall(token, method, params = {}) {
+    const body = new URLSearchParams({
+      token,
+      method,
+      parameters: JSON.stringify(params)
+    });
+    const res = await fetch('https://api.baselinker.com/connector.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body
+    });
+    return res.json();
+  }
+
+  function setBtn(iconId, labelId, icon, label, spinning) {
+    const i = $(iconId);
+    i.className = 'ti ' + icon + (spinning ? ' spinning' : '');
+    $(labelId).textContent = label;
+  }
+
+  async function testStorages() {
+    const key = $('api-key').value.trim();
+    if (!key) { showResult('storages-result', 'err', 'Wklej klucz API.'); return; }
+
+    setBtn('test-icon', 'test-label', 'ti-loader-2', 'Łączenie...', true);
+    $('storages-result').className = 'result-block';
+    $('storages-list').innerHTML = '';
+
+    try {
+      const [storData, invData] = await Promise.all([
+        blCall(key, 'getStoragesList'),
+        blCall(key, 'getInventories')
+      ]);
+
+      if (storData.status !== 'SUCCESS' && invData.status !== 'SUCCESS') {
+        showResult('storages-result', 'err', `Błąd API: ${storData.error_message || storData.status}. Sprawdź czy klucz API jest poprawny.`);
+        setBtn('test-icon', 'test-label', 'ti-plug', 'Pobierz ponownie', false);
+        return;
+      }
+
+      const storages = storData.storages || [];
+      const inventories = invData.inventories || [];
+      const total = storages.length + inventories.length;
+
+      showResult('storages-result', 'ok', `✓ Połączono. Znaleziono ${storages.length} magazyn${storages.length !== 1 ? 'y/ów' : ''} i ${inventories.length} katalog${inventories.length !== 1 ? 'i/ów' : ''} produktów.`);
+
+      const list = $('storages-list');
+      list.style.display = 'flex';
+
+      let html = '';
+      if (inventories.length) {
+        html += `<div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;padding:4px 2px;">Katalogi produktów (Inventory ID) — użyj tych w appce</div>`;
+        html += inventories.map(inv => `
+          <div class="storage-item" style="border-left: 3px solid var(--blue);">
+            <div>
+              <div class="storage-name">${inv.name || 'Katalog'}</div>
+              <div class="storage-id">inventory_id: ${inv.inventory_id}</div>
+            </div>
+            <button class="copy-badge" onclick="copyInvId('${inv.inventory_id}')" title="Kliknij żeby skopiować">${inv.inventory_id} <i class="ti ti-copy" style="font-size:11px;"></i></button>
+          </div>
+        `).join('');
+      }
+      if (storages.length) {
+        html += `<div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;padding:4px 2px;margin-top:8px;">Magazyny (Storage ID) — do stanów magazynowych</div>`;
+        html += storages.map(s => `
+          <div class="storage-item">
+            <div>
+              <div class="storage-name">${s.name || 'Magazyn'}</div>
+              <div class="storage-id">storage_id: ${s.storage_id}</div>
+            </div>
+            <div class="copy-badge" style="cursor:default;">${s.storage_id}</div>
+          </div>
+        `).join('');
+      }
+
+      list.innerHTML = html;
+      $('step2').style.opacity = '1';
+      $('step2').style.pointerEvents = 'auto';
+      setBtn('test-icon', 'test-label', 'ti-check', 'Połączono', false);
+
+    } catch(e) {
+      showResult('storages-result', 'err', 'Błąd połączenia. Sprawdź internet lub klucz API.');
+      setBtn('test-icon', 'test-label', 'ti-plug', 'Spróbuj ponownie', false);
+    }
+  }
+
+  async function testProduct() {
+    const key = $('api-key').value.trim();
+    const invId = $('storage-id-test').value.trim();
+    const ean = $('ean-test').value.trim();
+
+    if (!invId) { showResult('product-result', 'err', 'Wpisz Inventory ID (skopiuj z kroku 1).'); return; }
+    if (!ean) { showResult('product-result', 'err', 'Wpisz EAN produktu.'); return; }
+
+    setBtn('search-icon', 'search-label', 'ti-loader-2', 'Szukam...', true);
+    $('product-result').className = 'result-block';
+    $('product-detail').style.display = 'none';
+
+    try {
+      const data = await blCall(key, 'getInventoryProductsList', {
+        inventory_id: invId,
+        filter_ean: ean
+      });
+
+      if (data.status !== 'SUCCESS') {
+        showResult('product-result', 'err', `Błąd API: ${data.error_message || data.status}`);
+        setBtn('search-icon', 'search-label', 'ti-search', 'Wyszukaj produkt', false);
+        diagnose('api_error', data.error_message);
+        return;
+      }
+
+      const products = data.products || {};
+      const keys = Object.keys(products);
+
+      if (!keys.length) {
+        showResult('product-result', 'err', `Nie znaleziono produktu z EAN: ${ean}`);
+        setBtn('search-icon', 'search-label', 'ti-search', 'Wyszukaj ponownie', false);
+        diagnose('not_found', ean);
+        return;
+      }
+
+      const p = products[keys[0]];
+      showResult('product-result', 'ok', `✓ Znaleziono produkt (ID: ${keys[0]})`);
+
+      const dl = $('product-dl');
+      dl.innerHTML = `
+        <dt>Nazwa</dt><dd>${p.name || '—'}</dd>
+        <dt>SKU</dt><dd>${p.sku || '—'}</dd>
+        <dt>EAN</dt><dd>${p.ean || ean}</dd>
+        <dt>ID produktu</dt><dd>${keys[0]}</dd>
+        <dt>Lokalizacja</dt><dd>${p.location || '(brak)'}</dd>
+      `;
+      $('product-detail').style.display = 'block';
+      setBtn('search-icon', 'search-label', 'ti-check', 'Znaleziono', false);
+      diagnose('ok', p.name, invId);
+
+    } catch(e) {
+      showResult('product-result', 'err', 'Błąd połączenia.');
+      setBtn('search-icon', 'search-label', 'ti-search', 'Wyszukaj ponownie', false);
+    }
+  }
+
+  function diagnose(type, extra, invId) {
+    $('step3').style.opacity = '1';
+    $('step3').style.pointerEvents = 'auto';
+    const el = $('final-result');
+    if (type === 'ok') {
+      el.className = 'result-block ok';
+      el.innerHTML = `<strong>✓ Wszystko działa.</strong><br><br>W ustawieniach appki wpisz:<br>— Inventory ID: <strong>${invId}</strong><br><br>Appka znajdzie produkty po EAN.`;
+    } else if (type === 'not_found') {
+      el.className = 'result-block err';
+      el.innerHTML = `<strong>Produkt nie znaleziony.</strong><br><br>Możliwe przyczyny:<br>
+      1. Pole EAN nie jest uzupełnione w tym produkcie w BaseLinker<br>
+      2. Wpisany EAN różni się od zapisanego w produkcie<br>
+      3. Produkt jest w innym katalogu — spróbuj z innym Inventory ID<br><br>
+      Sprawdź: BaseLinker → konkretny produkt → zakładka "Podstawowe" → pole EAN.`;
+    } else if (type === 'api_error') {
+      el.className = 'result-block err';
+      el.innerHTML = `<strong>Błąd API:</strong> ${extra || ''}<br><br>Upewnij się że skopiowałeś Inventory ID z sekcji "Katalogi produktów" w kroku 1 (sama liczba, np. <code>12345</code>).`;
+    }
+  }
+
+  function showResult(id, type, msg) {
+    const el = $(id);
+    el.className = 'result-block ' + type;
+    el.textContent = msg;
+  }
+
+  function copyInvId(id) {
+    navigator.clipboard.writeText(id).then(() => {
+      $('storage-id-test').value = id;
+    });
+  }
+
+  function copyId(id) {
+    navigator.clipboard.writeText(id).then(() => {
+      $('storage-id-test').value = id;
+      const btns = document.querySelectorAll('.copy-badge');
+      btns.forEach(b => {
+        if (b.textContent.includes(id)) {
+          const orig = b.innerHTML;
+          b.innerHTML = '✓ Skopiowano';
+          setTimeout(() => { b.innerHTML = orig; }, 1500);
+        }
+      });
+    });
+  }
+</script>
+</body>
+</html>
